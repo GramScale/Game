@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game</title>
+    <style>
+        body {
+            position: relative;
+        }
+        #screen {
+            background-color: grey;
+            position: absolute;
+        }
+        #myCanvas {
+            background-image: url("img/SpaceBackground.png");
+            position: absolute;
+        }
+        #btnLeft {
+            height: 50px;
+            width: 50px;
+            top: 450px;
+            position: absolute;
+        }
+        #btnRight {
+            height: 50px;
+            width: 50px;
+            top: 450px;
+            left: 100px;
+            position: absolute;
+        }
+        #btnUp {
+            height: 50px;
+            width: 50px;
+            top: 400px;
+            left: 50px;
+            position: absolute;
+        }
+        #btnDown {
+            height: 50px;
+            width: 50px;
+            top: 450px;
+            left: 50px;
+            position: absolute;
+        }
+        #btnStart {
+            height: 100px;
+            width: 200px;
+            top: 200px;
+            left: 50px;
+            position: absolute;
+        }
+        #btnReset {
+            height: 50px;
+            width: 50px;
+            top: 450px;
+            left: 200px;
+            position: absolute;
+        }
+        #btnQuit {
+            height: 50px;
+            width: 50px;
+            top: 450px;
+            left: 250px;
+            position: absolute;
+        }
+    </style>
+</head>
+<body onload="gameOver()">
+    
+    <div id="screen"></div>
+    <canvas id="myCanvas"></canvas>
+    <button id="btnLeft" onclick="btnLeftClick()">
+    <!--<button id="btnLeft" onmousedown="btnLeftKeyDown()" onmouseup="btnLeftKeyUp()">-->
+        [L]</button>
+    <button id="btnRight" onclick="btnRightClick()">
+    <!--<button id="btnRight" onmousedown="btnRightKeyDown()" onmouseup="btnRightKeyUp()">-->
+        [R]</button>
+    <button id="btnUp" onclick="btnUpClick()">
+    <!--<button id="btnUp" onmousedown="btnUpKeyDown()" onmouseup="btnUpKeyUp()">-->
+        [U]</button>
+    <button id="btnDown" onclick="btnDownClick()">
+    <!--<button id="btnDown" onmousedown="btnDownKeyDown()" onmouseup="btnDownKeyUp()">-->
+        [D]</button>
+
+    <button id="btnStart" onclick="btnStartClick()">Start</button>
+    <button id="btnReset" onclick="btnResetClick()">Reset</button>
+    <button id="btnQuit" onclick="btnQuitClick()">Quit</button>
+
+    <script language="javascript" type="text/javascript">
+
+        var isLeft = false;
+        var isRight = false;
+        var isUp = false;
+        var isDown = false;
+
+        var respite = false;
+
+        var isRunning = false;
+
+        var score = 0;
+
+        var respiteCounter = 0;
+
+        var explosionImgArr = [];
+        var exArr = [];
+        var eArr = [];
+
+        var processInterval = 20;
+        var animateProcessInterval = 150;
+        var respiteInteral = 250;
+
+        var playerImg = new Image();
+        var playerResImg = new Image();
+        var enemyImg = new Image();
+
+        playerImg.src = "img/PlayerShip.png";
+        playerResImg.src = "img/PlayerShipRes.png";
+        enemyImg.src = "img/Asteroid.png";
+
+        for (var i = 0; i < 14; i++)
+        {
+            explosionImgArr.push(new Image());
+            explosionImgArr[i].src = "img/Explosion" + (i+1) + ".png";
+        }
+        
+        var device_screen = {
+            "min_height":0,
+            "min_width":0,
+            "max_width":300,
+            "max_height":500,
+        };
+
+        var game_screen = {
+            "x":0,
+            "y":0,
+            "width":300,
+            "height":400,
+        };
+
+        document.getElementById("screen").style.height = device_screen.max_height.toString() + "px";
+        document.getElementById("screen").style.width = device_screen.max_width.toString() + "px";
+
+        //must set canvas values, these are different from style values
+        document.getElementById("myCanvas").height = game_screen.height;
+        document.getElementById("myCanvas").width = game_screen.width;
+
+        document.getElementById("myCanvas").style.height = game_screen.height.toString() + "px";
+        document.getElementById("myCanvas").style.width = game_screen.width.toString() + "px";
+
+        var process = setInterval(gameProcess, processInterval);
+        clearInterval(process);
+
+        var animateProcess = setInterval(animateExplosion, animateProcessInterval);
+        clearInterval(animateProcess);
+
+        var respiteProcess = setInterval(respiteAfterDeath, respiteInteral);
+        clearInterval(respiteProcess);
+
+        function generateRandom(start, end) {
+            return Math.floor((Math.random() * end) + start);
+        }
+
+        var player = {
+            "height":40,
+            "width":40,
+            "x":game_screen.width/2 - 20,
+            "y":game_screen.height/2 - 20,
+            "moveSpeed" : 3,
+            "hp":3,
+            "x_def":game_screen.width/2 - 20,
+            "y_def":game_screen.height/2 - 20,
+            "hp_def":3,
+            "sprite": playerImg,
+        };
+
+        function enemy(x,y,width,height,moveSpeed,direction,sprite) 
+        {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.moveSpeed = moveSpeed;
+            this.direction = direction;
+            this.sprite = sprite;
+        }
+
+        function generateEnemy() 
+        {
+            var h = 20;
+            var w = 20;
+
+            var ms = generateRandom(1, 4);
+
+            // 1 = up
+            // 2 = right
+            // 3 = down
+            // 4 = left
+            var d = generateRandom(1, 4);
+
+            if (d == 1) 
+            {
+                var x = generateRandom(1, game_screen.width - w - 1);
+                var y = game_screen.height - h - 1;
+            }
+            else if (d == 2) 
+            {
+                var x = 1;
+                var y = generateRandom(1, game_screen.height - h - 1);
+            }
+            else if (d == 3) 
+            {
+                var x = generateRandom(1, game_screen.width - w - 1);
+                var y = 1;
+            }
+            else if (d == 4) 
+            {   
+                var x = game_screen.width - w - 1;
+                var y = generateRandom(1, game_screen.height - h - 1);
+            }
+            
+            var generatedEnemy = new enemy(x,y,w,h,ms,d,enemyImg);
+            
+            return generatedEnemy;
+        }
+
+        function explosion(x,y,width,height,sprite) 
+        {
+            this.x = x;
+            this.y = y;
+            this.height = height;
+            this.width = width;
+            this.sprite = sprite;
+            this.counter = 0;
+        }
+
+        function animateExplosion() 
+        {
+            for (var i = 0; i < exArr.length; i++) 
+            {
+                exArr[i].counter++;
+                if (exArr[i].counter < explosionImgArr.length) 
+                {
+                    exArr[i].sprite = explosionImgArr[exArr[i].counter];
+                }
+            }
+
+            if (isRunning == false && exArr.length == 0) 
+            {
+                clearInterval(process);
+                clearInterval(animateProcess);
+            }
+        }
+
+        function playerMoveLogic() 
+        {
+            if (isLeft == true && player.x > game_screen.x) 
+            {
+                player.x -= player.moveSpeed;
+            }
+
+            if (isRight == true && player.x + player.width < game_screen.width) 
+            {
+                player.x += player.moveSpeed;
+            }
+
+            if (isUp == true && player.y > game_screen.y) 
+            {
+                player.y -= player.moveSpeed;
+            }
+
+            if (isDown == true && player.y + player.height < game_screen.height) 
+            {
+                player.y += player.moveSpeed;
+            }
+        }
+
+        function enemyMoveLogic() 
+        {
+            // 1 = up
+            // 2 = right
+            // 3 = down
+            // 4 = left
+
+            for (var i = 0; i < eArr.length; i++) 
+            {
+                if (eArr[i].direction == 1) 
+                {
+                    eArr[i].y -= eArr[i].moveSpeed;
+                }
+                else if (eArr[i].direction == 2) 
+                {
+                    eArr[i].x += eArr[i].moveSpeed;
+                }
+                else if (eArr[i].direction == 3) 
+                {
+                    eArr[i].y += eArr[i].moveSpeed;
+                }
+                else if (eArr[i].direction == 4) 
+                {
+                    eArr[i].x -= eArr[i].moveSpeed;
+                }
+            }
+        }
+
+        function enemyDeathLogic() 
+        {
+            for (var i = 0; i < eArr.length; i++) 
+            {
+                if (eArr[i].x <= -20 || eArr[i].x >= game_screen.width + 20 
+                    || eArr[i].y <= - 20 || eArr[i].y >= game_screen.height + 20) 
+                {
+                    eArr.splice(i,1);
+                    score += 10;
+                }
+            }
+        }
+
+        function enemySpawnLogic() 
+        {
+            var chanceToSpawn = generateRandom(1,100);
+
+                if (chanceToSpawn == 7) 
+                {
+                    eArr.push(generateEnemy());
+                }
+        }
+
+        function explosionRemovalLogic() 
+        {
+            for (var i = 0; i < exArr.length; i++)
+                {
+                    if(exArr[i].counter >= explosionImgArr.length) {
+                        exArr.splice(i,1);
+                    }
+                }
+        }
+
+        function respiteAfterDeath() 
+        {
+            respite = true;
+            respiteCounter++;
+            if (respiteCounter % 2 == 0) 
+            {
+                player.sprite = playerResImg;
+            }
+            else 
+            {
+                player.sprite = playerImg;
+            }
+            if (respiteCounter >= 16) 
+            {
+                player.sprite = playerImg;
+                respiteCounter = 0;
+                clearInterval(respiteProcess);
+                respite = false;
+            }
+        }
+
+        function collisionDetect(x1,y1,w1,h1,x2,y2,w2,h2) 
+        {
+            if ( ((x1 > x2 && x1 < x2 + w2) || (x1 + w1 < x2 + w2 && x1 + w1 > x2)) 
+                && ((y1 > y2 && y1 < y2 + h2) || (y1 + h1 < y2 + h2 && y1 + h1 > y2)) ) 
+            {
+                return true;
+            } 
+            else 
+            {
+                return false;
+            }
+        }
+
+        function collisionLogic() 
+        {
+            if (respite == false) 
+            {
+                for (var i = 0; i <eArr.length; i ++) 
+                {
+                    if ( collisionDetect(player.x, player.y, player.width, player.height, eArr[i].x,eArr[i].y,eArr[i].width,eArr[i].height) ||
+                        collisionDetect(eArr[i].x,eArr[i].y,eArr[i].width,eArr[i].height, player.x, player.y, player.width, player.height) )
+                    {
+
+                        exArr.push(new explosion(player.x,player.y, player.width, player.width,explosionImgArr[0]));
+                        respite = true;
+                        respiteProcess = setInterval(respiteAfterDeath, respiteInteral);
+
+                        player.hp = player.hp -1;
+                        player.x = player.x_def;
+                        player.y = player.y_def;
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        function drawObjects() 
+        {
+            var c =document.getElementById("myCanvas");
+            var cx = c.getContext("2d");
+
+            //refresh entire screen/delete all prev draw
+            cx.clearRect(game_screen.x, game_screen.y, game_screen.width, game_screen.height);
+
+            //HP text
+            cx.font = "20px consolas";
+            cx.fillStyle = "#FF0000";
+            cx.fillText("HP: " + player.hp.toString(), 10,20);
+
+            //score text
+            cx.fillText("SCORE: " + score, 187,20);
+
+            //gameover text
+            if (isRunning == false) {
+                cx.font = "40px consolas";
+                cx.fillStyle = "#FF0000";
+                cx.fillText("GAME OVER", 40,200);
+            }
+
+            //player
+            if (player.hp > 0) 
+            {
+                cx.drawImage(player.sprite, player.x, player.y, player.width,player.height);
+            }
+
+            //enemy
+            for (var i = 0; i < eArr.length; i++) 
+            {
+                cx.drawImage(eArr[i].sprite,eArr[i].x,eArr[i].y,eArr[i].width,eArr[i].height);
+            }
+
+            //explosion
+            for (var i = 0; i < exArr.length; i++) 
+            {
+                cx.drawImage(exArr[i].sprite,exArr[i].x,exArr[i].y,exArr[i].width,exArr[i].height);
+            }
+        }
+        
+        function btnLeftKeyDown() 
+        {
+            resetDirectionControls();
+            isLeft = true;
+        }
+
+        function btnLeftKeyUp() 
+        {
+            isLeft = false;
+        }
+
+        function btnRightKeyDown() 
+        {
+            resetDirectionControls();
+            isRight = true;
+        }
+
+        function btnRightKeyUp() 
+        {
+            isRight = false;
+        }
+
+        function btnUpKeyDown() 
+        {
+            resetDirectionControls();
+            isUp = true;
+        }
+
+        function btnUpKeyUp() 
+        {
+            isUp = false;
+        }
+
+        function btnDownKeyDown() 
+        {
+            resetDirectionControls();
+            isDown = true;
+        }
+
+        function btnDownKeyUp() 
+        {
+            isDown = false;
+        }
+
+        function btnLeftClick()
+        {
+            resetDirectionControls();
+            isLeft = true;
+        }
+
+        function btnRightClick()
+        {
+            resetDirectionControls();
+            isRight = true;
+        }
+
+        function btnUpClick()
+        {
+            resetDirectionControls();
+            isUp = true;
+        }
+
+        function btnDownClick()
+        {
+            resetDirectionControls();
+            isDown = true;
+        }
+
+        function resetDirectionControls() {
+            isUp = false;
+            isDown = false;
+            isLeft = false;
+            isRight = false;
+        }
+
+        function btnResetClick() 
+        {
+            gameOver();
+            gameStart();
+        }
+
+        function btnQuitClick()
+        {
+            gameOver();
+        }
+
+        function btnStartClick() 
+        {
+            gameStart();
+        }
+
+        function gameStart() 
+        {
+            document.getElementById("btnStart").style.visibility = "hidden";
+
+            isRunning =true;
+            
+            process = setInterval(gameProcess, processInterval);
+            animateProcess = setInterval(animateExplosion, animateProcessInterval)
+
+            player.x = player.x_def;
+            player.y = player.y_def;
+            player.hp = player.hp_def;
+            eArr = [];
+            exArr = [];
+            score = 0;
+            console.log("gameOver called");
+        }
+
+        function gameOver() 
+        {
+            
+            isRunning = false;
+            respite = false;
+            eArr = [];
+            exArr = [];
+            score = 0;
+            clearInterval(process);
+            clearInterval(animateProcess);
+            clearInterval(respiteProcess);
+            document.getElementById("btnStart").style.visibility = "visible";
+
+            console.log("gameOver called");
+        }
+
+        function gameProcess() 
+        {
+            if (player.hp <= 0) 
+            {
+                isRunning = false;
+                respite = false;
+                clearInterval(respiteProcess);
+            }
+
+            if (isRunning == true) 
+            {
+                enemySpawnLogic();
+
+                playerMoveLogic();
+
+                enemyMoveLogic();
+
+                enemyDeathLogic();
+
+                collisionLogic();
+            }
+
+            drawObjects();            
+        }
+
+    </script>
+</body>
+</html>
