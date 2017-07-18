@@ -41,6 +41,13 @@
             left: 50px;
             position: absolute;
         }
+        #btnStop {
+            height: 50px;
+            width: 50px;
+            top: 400px;
+            left: 150px;
+            position: absolute;
+        }
         #btnStart {
             height: 100px;
             width: 200px;
@@ -51,8 +58,8 @@
         #btnReset {
             height: 50px;
             width: 50px;
-            top: 450px;
-            left: 200px;
+            top: 400px;
+            left: 250px;
             position: absolute;
         }
         #btnQuit {
@@ -80,6 +87,8 @@
     <button id="btnDown" onclick="btnDownClick()">
     <!--<button id="btnDown" onmousedown="btnDownKeyDown()" onmouseup="btnDownKeyUp()">-->
         [D]</button>
+
+    <button id="btnStop" onclick="btnStopClick()">Stop</button>
 
     <button id="btnStart" onclick="btnStartClick()">Start</button>
     <button id="btnReset" onclick="btnResetClick()">Reset</button>
@@ -164,7 +173,7 @@
             "width":40,
             "x":game_screen.width/2 - 20,
             "y":game_screen.height/2 - 20,
-            "moveSpeed" : 3,
+            "moveSpeed" : 2,
             "hp":3,
             "x_def":game_screen.width/2 - 20,
             "y_def":game_screen.height/2 - 20,
@@ -502,6 +511,11 @@
             isDown = true;
         }
 
+        function btnStopClick()
+        {
+            resetDirectionControls();
+        }
+
         function resetDirectionControls() {
             isUp = false;
             isDown = false;
@@ -545,7 +559,7 @@
 
         function gameOver() 
         {
-            
+            resetDirectionControls();
             isRunning = false;
             respite = false;
             eArr = [];
