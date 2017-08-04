@@ -19,6 +19,11 @@
             width: 50px;
             top: 450px;
             position: absolute;
+            background-image: Url("img/btnLeft.png");
+            background-repeat: no-repeat;
+            background-size: 50px 42px;
+            background-color:grey;
+            border: 1px solid grey;
         }
         #btnRight {
             height: 50px;
@@ -26,6 +31,11 @@
             top: 450px;
             left: 100px;
             position: absolute;
+            background-image: Url("img/btnRight.png");
+            background-repeat: no-repeat;
+            background-size: 50px 42px;
+            background-color:grey;
+            border: 1px solid grey;
         }
         #btnUp {
             height: 50px;
@@ -33,6 +43,12 @@
             top: 400px;
             left: 50px;
             position: absolute;
+            background-image: Url("img/btnUp.png");
+            background-repeat: no-repeat;
+            background-size: 42px 50px;
+            background-position: center;
+            background-color:grey;
+            border: 1px solid grey;
         }
         #btnDown {
             height: 50px;
@@ -40,6 +56,12 @@
             top: 450px;
             left: 50px;
             position: absolute;
+            background-image: Url("img/btnDown.png");
+            background-repeat: no-repeat;
+            background-size: 42px 50px;
+            background-position: center;
+            background-color:grey;
+            border: 1px solid grey;
         }
         #btnStop {
             height: 50px;
@@ -47,6 +69,12 @@
             top: 400px;
             left: 150px;
             position: absolute;
+            background-image: Url("img/btnStop.png");
+            background-repeat: no-repeat;
+            background-size: 48px 48px;
+            background-position: center;
+            background-color:grey;
+            border: 1px solid grey;
         }
         #btnStart {
             height: 100px;
@@ -54,6 +82,12 @@
             top: 200px;
             left: 50px;
             position: absolute;
+            background-image: Url("img/btnStart.png");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-color:rgba(0,0,0,9);
+            border: none;
         }
         #btnReset {
             height: 50px;
@@ -61,6 +95,12 @@
             top: 400px;
             left: 250px;
             position: absolute;
+            background-image: Url("img/btnReset.png");
+            background-repeat: no-repeat;
+            background-size: 48px 48px;
+            background-position: center;
+            background-color:grey;
+            border: 1px solid grey;
         }
         #btnQuit {
             height: 50px;
@@ -68,6 +108,12 @@
             top: 450px;
             left: 250px;
             position: absolute;
+            background-image: Url("img/btnQuit.png");
+            background-repeat: no-repeat;
+            background-size: 48px 48px;
+            background-position: center;
+            background-color:grey;
+            border: 1px solid grey;
         }
     </style>
 </head>
@@ -77,22 +123,22 @@
     <canvas id="myCanvas"></canvas>
     <button id="btnLeft" onclick="btnLeftClick()">
     <!--<button id="btnLeft" onmousedown="btnLeftKeyDown()" onmouseup="btnLeftKeyUp()">-->
-        [L]</button>
+        </button>
     <button id="btnRight" onclick="btnRightClick()">
     <!--<button id="btnRight" onmousedown="btnRightKeyDown()" onmouseup="btnRightKeyUp()">-->
-        [R]</button>
+        <button>
     <button id="btnUp" onclick="btnUpClick()">
     <!--<button id="btnUp" onmousedown="btnUpKeyDown()" onmouseup="btnUpKeyUp()">-->
-        [U]</button>
+        <button>
     <button id="btnDown" onclick="btnDownClick()">
     <!--<button id="btnDown" onmousedown="btnDownKeyDown()" onmouseup="btnDownKeyUp()">-->
-        [D]</button>
+        </button>
 
-    <button id="btnStop" onclick="btnStopClick()">Stop</button>
+    <button id="btnStop" onclick="btnStopClick()"></button>
 
-    <button id="btnStart" onclick="btnStartClick()">Start</button>
-    <button id="btnReset" onclick="btnResetClick()">Reset</button>
-    <button id="btnQuit" onclick="btnQuitClick()">Quit</button>
+    <button id="btnStart" onclick="btnStartClick()"></button>
+    <button id="btnReset" onclick="btnResetClick()"></button>
+    <button id="btnQuit" onclick="btnQuitClick()"></button>
 
     <script language="javascript" type="text/javascript">
 
@@ -386,7 +432,7 @@
                     if ( collisionDetect(player.x, player.y, player.width, player.height, eArr[i].x,eArr[i].y,eArr[i].width,eArr[i].height) ||
                         collisionDetect(eArr[i].x,eArr[i].y,eArr[i].width,eArr[i].height, player.x, player.y, player.width, player.height) )
                     {
-
+                        btnStopClick();
                         exArr.push(new explosion(player.x,player.y, player.width, player.width,explosionImgArr[0]));
                         respite = true;
                         respiteProcess = setInterval(respiteAfterDeath, respiteInteral);
@@ -415,7 +461,7 @@
             cx.fillText("HP: " + player.hp.toString(), 10,20);
 
             //score text
-            cx.fillText("SCORE: " + score, 187,20);
+            cx.fillText("SCORE: " + score, 110,20);
 
             //gameover text
             if (isRunning == false) {
