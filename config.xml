@@ -5,7 +5,7 @@
         version   = "1.0.0" >
   <name>Game</name>
   <preference name="Fullscreen" value="true" />
-  <description> This application is my first hybrid application </description>
+  <description> Game built in html, css, and javascript. </description>
   <icon src="img/logo.png" />
     
 </widget>
